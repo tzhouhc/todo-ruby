@@ -1,6 +1,8 @@
 # todo-ruby
 A very simple commandline todo utility.
 
+Requires `trollop` and Ruby1.9.
+
 ## Usage
 1. Put it anywhere you like, then alias it or link it to your /usr/local/bin.
 2. To add a task, use `todo -a 'some task'`. 
