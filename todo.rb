@@ -10,15 +10,14 @@ opts = Trollop.options do
   opt :add, 'Add an item to the to-do list.', default: nil, type: :string
   opt :done, 'Mark an item on the to-do list as done.', default: nil, type: :int
   opt :by, 'Designate a deadline for this todo.', default: nil, type: :string
-  # opt :clear, 'Clear all tasks.', default: nil
 end
 
-# print opts.clear
-# File.write('/Users/ting/.todo', '') if opts.clear
+todo_storage = ENV['HOME'] + '/.todo'
+File.write(todo_storage, YAML.dump([])) unless File.file?(todo_storage)
 
 if !opts.add && !opts.done
   # display mode'
-  File.open('/Users/ting/.todo', 'r') do |file|
+  File.open(todo_storage, 'r') do |file|
     content = file.read
     tasklist = YAML.load(content)
     n = 0
@@ -37,7 +36,7 @@ elsif opts.add
   # add mode
   date = opts.by ? parser.parse(opts.by) : nil
   tasklist = [[opts.add, date]]
-  File.open('/Users/ting/.todo', 'r') do |file|
+  File.open(todo_storage, 'r') do |file|
     content = file.read
     tasklist += YAML.load(content)
   end
@@ -54,11 +53,11 @@ elsif opts.add
     n += 1
   end
   data = YAML.dump(tasklist)
-  File.write('/Users/ting/.todo', data)
+  File.write(todo_storage, data)
 else
   # mark done mode
   tasklist = []
-  File.open('/Users/ting/.todo', 'r') do |file|
+  File.open(todo_storage, 'r') do |file|
     content = file.read
     tasklist = YAML.load(content)
     tasklist.delete_at(opts.done)
@@ -74,6 +73,6 @@ else
       n += 1
     end
     data = YAML.dump(tasklist)
-    File.write('/Users/ting/.todo', data)
+    File.write(todo_storage, data)
   end
 end
