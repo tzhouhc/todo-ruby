@@ -21,9 +21,9 @@ if !opts.add && !opts.done
     content = file.read
     tasklist = YAML.load(content)
     n = 0
-    tasklist.each do |data|
-      task = data[0]
-      date = data[1]
+    tasklist.each do |line|
+      task = line[0]
+      date = line[1]
       if date
         puts " #{n}\t| #{task}: due in #{(date - Date.today).to_i} days"
       else
@@ -42,9 +42,9 @@ elsif opts.add
   end
   tasklist.sort_by! { |e| e[1].to_s }
   n = 0
-  tasklist.each do |data|
-    task = data[0]
-    date = data[1]
+  tasklist.each do |line|
+    task = line[0]
+    date = line[1]
     if date
       puts " #{n}\t| #{task}: due in #{(date - Date.today).to_i} days"
     else
@@ -62,9 +62,9 @@ else
     tasklist = YAML.load(content)
     tasklist.delete_at(opts.done)
     n = 0
-    tasklist.each do |data|
-      task = data[0]
-      date = data[1]
+    tasklist.each do |line|
+      task = line[0]
+      date = line[1]
       if date
         puts " #{n}\t| #{task}: due in #{(date - Date.today).to_i} days"
       else
