@@ -1,7 +1,7 @@
 # todo-ruby
 A very simple commandline todo utility.
 
-Requires `trollop`, `rly` and Ruby1.9.
+Requires `trollop`, `rly`, `colorize` and Ruby1.9.
 
 ## Usage
 1. Put it anywhere you like, then alias it or link it to your /usr/local/bin.

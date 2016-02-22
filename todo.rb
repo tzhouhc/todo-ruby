@@ -2,6 +2,7 @@
 
 require 'trollop'
 require 'yaml'
+require 'colorize'
 require_relative 'parser.rb'
 
 parser = TimeParse.new(TimeLex.new)
@@ -15,6 +16,15 @@ end
 todo_storage = ENV['HOME'] + '/.todo'
 File.write(todo_storage, YAML.dump([])) unless File.file?(todo_storage)
 
+def print_task(n, line)
+  task, date = line
+  if date
+    puts " #{n.to_s.yellow}\t| #{task.blue}: due in #{(date - Date.today).to_i.to_s.red} days"
+  else
+    puts " #{n.to_s.yellow}\t| #{task.blue}"
+  end
+end
+
 if !opts.add && !opts.done
   # display mode'
   File.open(todo_storage, 'r') do |file|
@@ -22,13 +32,7 @@ if !opts.add && !opts.done
     tasklist = YAML.load(content)
     n = 0
     tasklist.each do |line|
-      task = line[0]
-      date = line[1]
-      if date
-        puts " #{n}\t| #{task}: due in #{(date - Date.today).to_i} days"
-      else
-        puts " #{n}\t| #{task}"
-      end
+      print_task(n, line)
       n += 1
     end
   end
@@ -43,13 +47,7 @@ elsif opts.add
   tasklist.sort_by! { |e| e[1].to_s }
   n = 0
   tasklist.each do |line|
-    task = line[0]
-    date = line[1]
-    if date
-      puts " #{n}\t| #{task}: due in #{(date - Date.today).to_i} days"
-    else
-      puts " #{n}\t| #{task}"
-    end
+    print_task(n, line)
     n += 1
   end
   data = YAML.dump(tasklist)
@@ -63,13 +61,7 @@ else
     tasklist.delete_at(opts.done)
     n = 0
     tasklist.each do |line|
-      task = line[0]
-      date = line[1]
-      if date
-        puts " #{n}\t| #{task}: due in #{(date - Date.today).to_i} days"
-      else
-        puts " #{n}\t| #{task}"
-      end
+      print_task(n, line)
       n += 1
     end
     data = YAML.dump(tasklist)

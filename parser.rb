@@ -66,6 +66,7 @@ class TimeLex < Rly::Lex
   token :FROM, /from/i
   token :TO, /to(?!d)/i
   token :AFTER, /after/i
+  token :UNTIL, /until/i
 
   # English numberal
   token :ENUMBER, /(the)|a(?= )|(one)|(two)|(three)|(four)|(five)|(six)|(seven)|(eight)|(nine)|(ten)/i do |t|
@@ -105,15 +106,15 @@ class TimeParse < Rly::Yacc
     st.value = e.value
   end
 
-  rule 'time : timeperiod FROM timepoint | timeperiod AFTER timepoint' do |st, e1, _f, e2|
+  rule 'time : timeperiod FROM timepoint | timeperiod AFTER timepoint' do |st, e1, _, e2|
     st.value = e2.value + e1.value
   end
 
-  rule 'time : timeperiod TO timepoint' do |st, e1, _f, e2|
+  rule 'time : timeperiod TO timepoint | timeperiod UNTIL timepoint' do |st, e1, _, e2|
     st.value = e2.value - e1.value
   end
 
-  rule 'time : IN timeperiod' do |st, _f, e|
+  rule 'time : IN timeperiod' do |st, _, e|
     st.value = Date.today + e.value
   end
 
@@ -125,11 +126,11 @@ class TimeParse < Rly::Yacc
     st.value = e.value
   end
 
-  rule 'timepoint : NEXT WEEKDAY' do |st, _f, e|
+  rule 'timepoint : NEXT WEEKDAY' do |st, _, e|
     st.value = e.value + 7
   end
 
-  rule 'timepoint : NEXT MONTHDAY' do |st, _f, e|
+  rule 'timepoint : NEXT MONTHDAY' do |st, _, e|
     st.value = e.value.next_month
   end
 
