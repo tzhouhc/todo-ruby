@@ -22,7 +22,7 @@ class TimeLex < Rly::Lex
   end
 
   # absolutes: are dates
-  token :DATE, %r{\d\d?[\/-]\d\d?([\/-]\d\d(\d\d)?)} do |t|
+  token :DATE, %r{\d\d?[\/-]\d\d?([\/-]\d\d(\d\d)?)?} do |t|
     t.value = Date.parse(t.value)
     t
   end
