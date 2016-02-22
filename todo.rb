@@ -19,9 +19,9 @@ File.write(todo_storage, YAML.dump([])) unless File.file?(todo_storage)
 def date_colorize(date)
   # urgency color-code the date
   date_diff = (date - Date.today).to_i
-  if date_diff < 2
+  if date_diff < 3
     date_diff.to_s.red
-  elsif date_diff > 5
+  elsif date_diff > 7
     date_diff.to_s.green
   else
     date_diff.to_s.yellow
@@ -34,7 +34,7 @@ def print_task(n, line)
   if date
     date_s = date_colorize(date) # if there is a deadline
     puts " #{n.to_s.yellow}\t| #{task.blue}: due in #{date_s} days"
-  else # if there is not 
+  else # if there is not
     puts " #{n.to_s.yellow}\t| #{task.blue}"
   end
 end
