@@ -31,12 +31,13 @@ end
 def print_task(n, line)
   # print the task by given info
   task, date = line
-  if date
-    date_s = date_colorize(date) # if there is a deadline
-    puts " #{n.to_s.yellow}\t| #{task.blue}: due in #{date_s} days"
-  else # if there is not
-    puts " #{n.to_s.yellow}\t| #{task.blue}"
-  end
+  result = case
+           when date && (date - Date.today < 5 || n < 5)
+             " #{n.to_s.yellow}\t| #{task.blue}: due in #{date_colorize(date)} days"
+           when n < 5
+             " #{n.to_s.yellow}\t| #{task.blue}"
+           end
+  puts result if result
 end
 
 if !opts.add && !opts.done
