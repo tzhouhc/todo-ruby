@@ -67,6 +67,7 @@ class TimeLex < Rly::Lex
   token :TO, /to(?!d)/i
   token :AFTER, /after/i
   token :UNTIL, /until/i
+  token :LATER, /later/i
 
   # English numberal
   token :ENUMBER, /(the)|a(?= )|(one)|(two)|(three)|(four)|(five)|(six)|(seven)|(eight)|(nine)|(ten)/i do |t|
@@ -115,6 +116,10 @@ class TimeParse < Rly::Yacc
   end
 
   rule 'time : IN timeperiod' do |st, _, e|
+    st.value = Date.today + e.value
+  end
+
+  rule 'time : timeperiod LATER' do |st, e, _|
     st.value = Date.today + e.value
   end
 
