@@ -11,6 +11,7 @@ opts = Trollop.options do
   opt :add, 'Add an item to the to-do list.', default: nil, type: :string
   opt :done, 'Mark an item on the to-do list as done.', default: nil, type: :ints
   opt :by, 'Designate a deadline for this todo.', default: nil, type: :string
+  opt :showall, 'Show more than the most urgent several tasks.', default: false
 end
 
 todo_storage = ENV['HOME'] + '/.todo'
@@ -25,6 +26,15 @@ def date_colorize(date)
     date_diff.to_s.green
   else
     date_diff.to_s.yellow
+  end
+end
+
+def full_print_task(n, line)
+  task, date = line
+  if date
+    puts " #{n.to_s.yellow}\t| #{task.blue}: due in #{date_colorize(date)} days"
+  else
+    puts " #{n.to_s.yellow}\t| #{task.blue}"
   end
 end
 
@@ -47,7 +57,7 @@ if !opts.add && !opts.done
     tasklist = YAML.load(content)
     n = 0
     tasklist.each do |line|
-      print_task(n, line) # print one line at a time
+      opts.showall ? full_print_task(n, line) : print_task(n, line) # print one line at a time
       n += 1
     end
   end
@@ -68,7 +78,7 @@ elsif opts.add
   end
   n = 0
   tasklist.each do |line|
-    print_task(n, line) # also print out post-change
+    opts.showall ? full_print_task(n, line) : print_task(n, line) # also print out post-change
     n += 1
   end
   data = YAML.dump(tasklist) # then store the data
@@ -82,7 +92,7 @@ else
     tasklist.delete_if.with_index { |_, index| opts.done.include?(index) } # remove each after retrieve
     n = 0
     tasklist.each do |line| # also print out post-change
-      print_task(n, line)
+      opts.showall ? full_print_task(n, line) : print_task(n, line)
       n += 1
     end
     data = YAML.dump(tasklist) # then store the data
