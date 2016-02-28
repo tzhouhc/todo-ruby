@@ -20,6 +20,35 @@ class TimeLex < Rly::Lex
     t.value = 30
     t
   end
+  token :HOUR, /h|(hour)s?/i do |t|
+    t.value = 1 / 24.to_r
+    t
+  end
+  token :MINUTE, /m|(min)|(minute)s?/i do |t|
+    t.value = 1 / 1440.to_r
+    t
+  end
+
+  token :TIME, /\d\d?(:\d\d?)? ?(am|pm)/i do |t|
+    t.value = (Time.parse(t) - Date.today.to_time).to_i / 86_400.to_r
+  end
+
+  token :TIMEOFDAY, /(morning)|(noon)|(afternoon)|(evening)|(night)|(midnight)/i do |t|
+    t.value = case t.value
+              when /morning/i # 9AM
+                3 / 8.to_r
+              when /noon/i # 12PM
+                1 / 2.to_r
+              when /afternoon/i # 2PM
+                7 / 12.to_r
+              when /evening/i # 6PM
+                3 / 4.to_r
+              when /night/i # 9PM
+                7 / 8.to_r
+              when /midnight/i # 11:59PM
+                1439 / 1440.to_r
+              end
+  end
 
   # absolutes: are dates
   token :DATE, %r{\d\d?[\/-]\d\d?([\/-]\d\d(\d\d)?)?} do |t|
@@ -68,6 +97,8 @@ class TimeLex < Rly::Lex
   token :AFTER, /after/i
   token :UNTIL, /until/i
   token :LATER, /later/i
+  token :AND, /and/i
+  token :COMMA, /,/i
 
   # English numberal
   token :ENUMBER, /(the)|a(?= )|(one)|(two)|(three)|(four)|(five)|(six)|(seven)|(eight)|(nine)|(ten)/i do |t|
@@ -102,16 +133,17 @@ class TimeLex < Rly::Lex
 end
 
 # Parser class.
+# PENDING MODIFICATION.
 class TimeParse < Rly::Yacc
-  rule 'time : timepoint' do |st, e|
+  rule 'time : date' do |st, e|
     st.value = e.value
   end
 
-  rule 'time : timeperiod FROM timepoint | timeperiod AFTER timepoint' do |st, e1, _, e2|
+  rule 'time : timeperiod FROM date | timeperiod AFTER date' do |st, e1, _, e2|
     st.value = e2.value + e1.value
   end
 
-  rule 'time : timeperiod TO timepoint | timeperiod UNTIL timepoint' do |st, e1, _, e2|
+  rule 'time : timeperiod TO date | timeperiod UNTIL date' do |st, e1, _, e2|
     st.value = e2.value - e1.value
   end
 
@@ -123,23 +155,23 @@ class TimeParse < Rly::Yacc
     st.value = Date.today + e.value
   end
 
-  rule 'timepoint : DATE' do |st, e|
+  rule 'date : DATE' do |st, e|
     st.value = e.value
   end
 
-  rule 'timepoint : TODAY | YESTERDAY | TOMORROW | WEEKDAY | MONTHDAY' do |st, e|
+  rule 'date : TODAY | YESTERDAY | TOMORROW | WEEKDAY | MONTHDAY' do |st, e|
     st.value = e.value
   end
 
-  rule 'timepoint : NEXT WEEKDAY' do |st, _, e|
+  rule 'date : NEXT WEEKDAY' do |st, _, e|
     st.value = e.value + 7
   end
 
-  rule 'timepoint : NEXT MONTHDAY' do |st, _, e|
+  rule 'date : NEXT MONTHDAY' do |st, _, e|
     st.value = e.value.next_month
   end
 
-  rule 'timeunit : DAY | WEEK | MONTH' do |st, e|
+  rule 'timeunit : DAY | WEEK | MONTH | HOUR | MINUTE' do |st, e|
     st.value = e.value
   end
 
@@ -149,6 +181,10 @@ class TimeParse < Rly::Yacc
 
   rule 'timeperiod : NUMBER timeunit | ENUMBER timeunit' do |st, n, e|
     st.value = n.value * e.value
+  end
+
+  rule 'timeperiod : timeperiod AND timeperiod | timeperiod COMMA timeperiod' do |st, e1, _, e2|
+    st.value = e1.value + e2.value
   end
 end
 
