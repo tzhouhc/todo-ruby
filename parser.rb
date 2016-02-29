@@ -42,7 +42,7 @@ class TimeLex < Rly::Lex
     t.value = 1 / 24.to_r
     t
   end
-  token :MINUTE, /^m|(min)|(minute)s?$/i do |t|
+  token :MINUTE, /m|(min)|(minute)s?/i do |t|
     t.value = 1 / 1440.to_r
     t
   end
