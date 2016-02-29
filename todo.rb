@@ -17,22 +17,34 @@ end
 todo_storage = ENV['HOME'] + '/.todo'
 File.write(todo_storage, YAML.dump([])) unless File.file?(todo_storage)
 
+def r_to_date(r)
+  days = r.to_i
+  hours = (24 * (r - days)).to_i
+  use_and = days.abs >= 1 && hours.abs >= 1 ? " and " : ''
+  days_str = days.abs >= 1 ? "#{days} days" : ''
+  hours_str = hours.abs >= 1 ? "#{hours} hours" : ''
+  days_str + use_and + hours_str
+  # hours >= 1 ? "#{days} days and #{hours} hours" : "#{days} days"
+end
+
 def date_colorize(date)
   # urgency color-code the date
-  date_diff = (date - Date.today).to_i
+  date_diff = date - DateTime.now
+  puts date_diff
+  date_str = r_to_date(date_diff)
   if date_diff < 3
-    date_diff.to_s.red
+    date_str.red
   elsif date_diff > 7
-    date_diff.to_s.green
+    date_str.green
   else
-    date_diff.to_s.yellow
+    date_str.yellow
   end
 end
 
 def full_print_task(n, line)
   task, date = line
   if date
-    puts " #{n.to_s.yellow}\t| #{task.blue}: due in #{date_colorize(date)} days"
+    puts " #{n.to_s.yellow}\t| #{task.blue}: due in #{date_colorize(date)}"
   else
     puts " #{n.to_s.yellow}\t| #{task.blue}"
   end
@@ -43,7 +55,7 @@ def print_task(n, line)
   task, date = line
   result = case
            when date && (date - Date.today < 5 || n < 5)
-             " #{n.to_s.yellow}\t| #{task.blue}: due in #{date_colorize(date)} days"
+             " #{n.to_s.yellow}\t| #{task.blue}: due in #{date_colorize(date)}"
            when n < 5
              " #{n.to_s.yellow}\t| #{task.blue}"
            end
