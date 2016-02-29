@@ -25,6 +25,11 @@ class TimeLex < Rly::Lex
     t
   end
 
+  token :TIMEINDAY, /\d\d?(\:\d\d?)? ?(am|pm)?/i do |t|
+    t.value = (Time.parse(t.to_s) - Date.today.to_time).to_i / 86_400.to_r
+    t
+  end
+
   # time units: are time intervals
   token :DAY, /days?/i do |t|
     t.value = 1
@@ -45,10 +50,6 @@ class TimeLex < Rly::Lex
   token :MINUTE, /m|(min)|(minute)s?/i do |t|
     t.value = 1 / 1440.to_r
     t
-  end
-
-  token :TIMEINDAY, /\d\d?(:\d\d?)? ?(am|pm)/i do |t|
-    t.value = (Time.parse(t) - Date.today.to_time).to_i / 86_400.to_r
   end
 
   # absolutes: are dates
@@ -198,9 +199,9 @@ class TimeParse < Rly::Yacc
   end
 end
 
-# text = 'the day after tomorrow'
+# text = 'friday 4pm'
 # lex = TimeLex.new(text)
-# while t = lex.next
+# while (t = lex.next)
 #   p t
 # end
 
