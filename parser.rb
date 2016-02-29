@@ -48,6 +48,7 @@ class TimeLex < Rly::Lex
               when /midnight/i # 11:59PM
                 1439 / 1440.to_r
               end
+    t
   end
 
   # absolutes: are dates
