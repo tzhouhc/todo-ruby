@@ -11,23 +11,28 @@ opts = Trollop.options do
   opt :done, 'Mark some items on the to-do list as done.', default: nil, type: :ints
   opt :by, 'Designate a deadline for this todo.', default: nil, type: :string
   opt :showall, 'Show more than the most urgent several tasks.', default: false
+  opt :timezone, 'Modify the time based on time zones.', default: -5
 end
+
+# modify this for a different time zone.
+# e.g. -5 for EST.
+TIMEZONE = -5 
 
 todo_storage = ENV['HOME'] + '/.todo'
 File.write(todo_storage, Marshal.dump([])) unless File.file?(todo_storage)
 
-def r_to_date(r)
+def r_to_date(duration)
   # convert a rational number to a duration
-  days = r.to_i
-  hours = (24 * (r - days)).to_i
-  use_and = days.abs >= 1 && hours.abs >= 1 && days < 5 ? ' ' : ''
+  days = duration.to_i
+  hours = (24 * (duration - days)).to_i
+  use_and = days.abs >= 1 && hours.abs >= 1 && duration < 3 ? ' ' : ''
   days_str = days.abs >= 1 ? "#{days} days" : ''
-  hours_str = hours.abs >= 1 && days < 5 ? "#{hours} hours" : ''
+  hours_str = hours.abs >= 1 && duration < 3 ? "#{hours} hours" : ''
   days_str + use_and + hours_str
 end
 
 def date_colorize(date)
-  date_diff = date - DateTime.now + 5 / 24.to_r # adjusting EST
+  date_diff = date - DateTime.now - TIMEZONE / 24.to_r # adjusting EST
   date_str = r_to_date(date_diff)
   if date_diff < 3
     date_str.red
