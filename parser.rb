@@ -7,6 +7,24 @@ require 'time'
 class TimeLex < Rly::Lex
   ignore " \t\n"
 
+  token :TIMEOFDAY, /(morning)|(afternoon)|(noon)|(evening)|((mid)?night)/i do |t|
+    t.value = case t.value
+              when /morning/i # 9AM
+                3 / 8.to_r
+              when /afternoon/i # 2PM
+                7 / 12.to_r
+              when /noon/i # 12PM
+                1 / 2.to_r
+              when /evening/i # 6PM
+                3 / 4.to_r
+              when /midnight/i # 11:59PM
+                1439 / 1440.to_r
+              when /night/i # 9PM
+                7 / 8.to_r
+              end
+    t
+  end
+
   # time units: are time intervals
   token :DAY, /days?/i do |t|
     t.value = 1
@@ -24,31 +42,13 @@ class TimeLex < Rly::Lex
     t.value = 1 / 24.to_r
     t
   end
-  token :MINUTE, /m|(min)|(minute)s?/i do |t|
+  token :MINUTE, /^m|(min)|(minute)s?$/i do |t|
     t.value = 1 / 1440.to_r
     t
   end
 
   token :TIMEINDAY, /\d\d?(:\d\d?)? ?(am|pm)/i do |t|
     t.value = (Time.parse(t) - Date.today.to_time).to_i / 86_400.to_r
-  end
-
-  token :TIMEOFDAY, /(morning)|(noon)|(afternoon)|(evening)|(night)|(midnight)/i do |t|
-    t.value = case t.value
-              when /morning/i # 9AM
-                3 / 8.to_r
-              when /noon/i # 12PM
-                1 / 2.to_r
-              when /afternoon/i # 2PM
-                7 / 12.to_r
-              when /evening/i # 6PM
-                3 / 4.to_r
-              when /night/i # 9PM
-                7 / 8.to_r
-              when /midnight/i # 11:59PM
-                1439 / 1440.to_r
-              end
-    t
   end
 
   # absolutes: are dates
@@ -102,7 +102,7 @@ class TimeLex < Rly::Lex
   token :COMMA, /,/i
 
   # English numberal
-  token :ENUMBER, /(the)|a(?= )|(one)|(two)|(three)|(four)|(five)|(six)|(seven)|(eight)|(nine)|(ten)/i do |t|
+  token :ENUMBER, /(the)|a|(one)|(two)|(three)|(four)|(five)|(six)|(seven)|(eight)|(nine)|(ten)/i do |t|
     t.value = case t.value
               when /the/i
                 1
@@ -198,5 +198,11 @@ class TimeParse < Rly::Yacc
   end
 end
 
+# text = 'the day after tomorrow'
+# lex = TimeLex.new(text)
+# while t = lex.next
+#   p t
+# end
+
 # parser = TimeParse.new(TimeLex.new)
-# p parser.parse('next 15th').to_s
+# p parser.parse(text)
