@@ -25,7 +25,12 @@ class TimeLex < Rly::Lex
     t
   end
 
-  token :TIMEINDAY, /\d\d?(\:\d\d?)? ?(am|pm)?/i do |t|
+  token :TIMEINDAY, /\d\d?\:(\d\d?)?/i do |t|
+    t.value = (Time.parse(t.to_s) - Date.today.to_time).to_i / 86_400.to_r
+    t
+  end
+
+  token :TIMEINDAY12, /\d\d?(\:\d\d?)? ?(am|pm)/i do |t|
     t.value = (Time.parse(t.to_s) - Date.today.to_time).to_i / 86_400.to_r
     t
   end
@@ -178,7 +183,7 @@ class TimeParse < Rly::Yacc
     st.value = e.value.next_month
   end
 
-  rule 'timepoint : daypoint TIMEOFDAY | daypoint TIMEINDAY' do |st, e1, e2|
+  rule 'timepoint : daypoint TIMEOFDAY | daypoint TIMEINDAY | daypoint TIMEINDAY12' do |st, e1, e2|
     st.value = e1.value + e2.value
   end
 
@@ -199,7 +204,7 @@ class TimeParse < Rly::Yacc
   end
 end
 
-# text = 'friday 4pm'
+# text = '2 hours after tomorrow 2pm'
 # lex = TimeLex.new(text)
 # while (t = lex.next)
 #   p t
