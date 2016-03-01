@@ -183,8 +183,16 @@ class TimeParse < Rly::Yacc
     st.value = e.value.next_month
   end
 
-  rule 'timepoint : daypoint TIMEOFDAY | daypoint TIMEINDAY | daypoint TIMEINDAY12' do |st, e1, e2|
+  rule 'detailpoint : TIMEOFDAY | TIMEINDAY | TIMEINDAY12' do |st, e|
+    st.value = e.value
+  end
+
+  rule 'timepoint : daypoint detailpoint' do |st, e1, e2|
     st.value = e1.value + e2.value
+  end
+
+  rule 'timepoint : detailpoint' do |st, e|
+    st.value = Date.today + e.value
   end
 
   rule 'timeunit : DAY | WEEK | MONTH | HOUR | MINUTE' do |st, e|
