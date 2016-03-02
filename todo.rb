@@ -24,11 +24,12 @@ File.write(todo_storage, Marshal.dump([])) unless File.file?(todo_storage)
 def r_to_date(duration)
   # convert a rational number to a duration
   days = duration.to_i
+  due = duration <= 0 ? 'past due ' : 'due in '
   hours = (24 * (duration - days)).to_i
   use_and = days.abs >= 1 && hours.abs >= 1 && duration < 3 ? ' ' : ''
   days_str = days.abs >= 1 ? "#{days} days" : ''
   hours_str = hours.abs >= 1 && duration < 3 ? "#{hours} hours" : ''
-  days_str + use_and + hours_str
+  due + days_str + use_and + hours_str
 end
 
 def date_colorize(date)
@@ -47,7 +48,7 @@ def full_print_task(n, line)
   # print all tasks
   task, date = line
   if date
-    puts " #{n.to_s.yellow}\t| #{task.blue}: due in #{date_colorize(date)}"
+    puts " #{n.to_s.yellow}\t| #{task.blue}: #{date_colorize(date)}"
   else
     puts " #{n.to_s.yellow}\t| #{task.blue}"
   end
