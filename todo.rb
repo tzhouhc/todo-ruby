@@ -59,7 +59,7 @@ def print_task(n, line)
   task, date = line
   result = case
            when date && (date - Date.today < 5 || n < 5)
-             " #{n.to_s.yellow}\t| #{task.blue}: due in #{date_colorize(date)}"
+             " #{n.to_s.yellow}\t| #{task.blue}: #{date_colorize(date)}"
            when n < 5
              " #{n.to_s.yellow}\t| #{task.blue}"
            end
