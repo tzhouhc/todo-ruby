@@ -2,9 +2,7 @@
 
 require 'trollop'
 require 'colorize'
-require_relative 'parser.rb'
-
-parser = TimeParse.new(TimeLex.new)
+require 'chronic'
 
 opts = Trollop.options do
   opt :add, 'Add an item to the to-do list.', default: nil, type: :string
@@ -14,9 +12,15 @@ opts = Trollop.options do
   opt :timezone, 'Modify the time based on time zones.', default: -5
 end
 
+class Time
+  def to_date
+    Date.parse(to_s) + self.hour/24r + self.min/60r + self.sec/60r
+  end
+end
+
 # modify this for a different time zone.
 # e.g. -5 for EST.
-TIMEZONE = -5 
+TIMEZONE = -5
 
 todo_storage = ENV['HOME'] + '/.todo'
 File.write(todo_storage, Marshal.dump([])) unless File.file?(todo_storage)
@@ -79,7 +83,7 @@ if !opts.add && !opts.done
   end
 elsif opts.add
   # add mode
-  date = opts.by ? parser.parse(opts.by) : nil
+  date = opts.by ? Chronic.parse(opts.by).to_date : nil
   tasklist = [[opts.add, date]]
   File.open(todo_storage, 'r') do |file|
     content = file.read
