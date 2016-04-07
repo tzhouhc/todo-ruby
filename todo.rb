@@ -14,7 +14,7 @@ end
 
 class Time
   def to_date
-    Date.parse(to_s) + self.hour/24r + self.min/60r + self.sec/60r
+    Date.parse(to_s) + hour / 24r + min / 60r + sec / 60r
   end
 end
 
