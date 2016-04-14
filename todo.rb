@@ -8,6 +8,7 @@ opts = Trollop.options do
   opt :add, 'Add an item to the to-do list.', default: nil, type: :string
   opt :done, 'Mark some items on the to-do list as done.', default: nil, type: :ints
   opt :by, 'Designate a deadline for this todo.', default: nil, type: :string
+  opt :change, 'Modify the deadline for a todo', default: nil, type: :int
   opt :showall, 'Show more than the most urgent several tasks.', default: false
   opt :timezone, 'Modify the time based on time zones.', default: -5
 end
@@ -70,7 +71,7 @@ def print_task(n, line)
   puts result if result
 end
 
-if !opts.add && !opts.done
+if !opts.add && !opts.done && !opts.change
   # display mode
   File.open(todo_storage, 'r') do |file|
     content = file.read
@@ -103,6 +104,22 @@ elsif opts.add
   end
   data = Marshal.dump(tasklist) # then store the data
   File.write(todo_storage, data)
+elsif opts.change
+  # modification mode
+  new_date = opts.by ? Chronic.parse(opts.by).to_date : nil
+  tasklist = []
+  File.open(todo_storage, 'r') do |file|
+    content = file.read
+    tasklist = Marshal.load(content)
+    tasklist[opts.change][1] = new_date # change the due-date of one particular task
+    n = 0
+    tasklist.each do |line| # also print out post-change
+      opts.showall ? full_print_task(n, line) : print_task(n, line)
+      n += 1
+    end
+    data = Marshal.dump(tasklist) # then store the data
+    File.write(todo_storage, data)
+  end
 else
   # mark done mode
   tasklist = []
