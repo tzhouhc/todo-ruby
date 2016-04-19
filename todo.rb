@@ -15,34 +15,36 @@ end
 
 class Time
   def to_date
-    Date.parse(to_s) + hour / 24r + min / 60r + sec / 60r
+    Date.parse(to_s) + hour / 24r + min / 1440r + sec / 86400r
   end
 end
 
 # modify this for a different time zone.
 # e.g. -5 for EST.
-TIMEZONE = -5
+TIMEZONE = opts.timezone
+DAY = 86400
+HOUR = 3600
 
 todo_storage = ENV['HOME'] + '/.todo'
 File.write(todo_storage, Marshal.dump([])) unless File.file?(todo_storage)
 
 def r_to_date(duration)
   # convert a rational number to a duration
-  days = duration.to_i
   due = duration <= 0 ? 'past due ' : 'due in '
-  hours = (24 * (duration - days)).to_i
-  use_and = days.abs >= 1 && hours.abs >= 1 && duration < 3 ? ' ' : ''
+  days = (duration / DAY).to_i
+  hours = ((duration - days * DAY) / HOUR).to_i
+  use_and = days.abs >= 1 && hours.abs >= 1 && duration < 3 * DAY ? ' ' : ''
   days_str = days.abs >= 1 ? "#{days} days" : ''
-  hours_str = hours.abs >= 1 && duration < 3 ? "#{hours} hours" : ''
+  hours_str = hours.abs >= 1 && duration < 3 * DAY ? "#{hours} hours" : ''
   due + days_str + use_and + hours_str
 end
 
 def date_colorize(date)
-  date_diff = date - DateTime.now - TIMEZONE / 24.to_r # adjusting EST
+  date_diff = date - Time.now
   date_str = r_to_date(date_diff)
-  if date_diff < 3
+  if date_diff < 3 * DAY
     date_str.red
-  elsif date_diff > 7
+  elsif date_diff > 7 * DAY
     date_str.green
   else
     date_str.yellow
@@ -63,7 +65,7 @@ def print_task(n, line)
   # print the task by given info, and only up to things due soon
   task, date = line
   result = case
-           when date && (date - Date.today < 5 || n < 5)
+           when date && (date - Time.now < 5 * DAY || n < 5)
              " #{n.to_s.yellow}\t| #{task.blue}: #{date_colorize(date)}"
            when n < 5
              " #{n.to_s.yellow}\t| #{task.blue}"
@@ -84,7 +86,7 @@ if !opts.add && !opts.done && !opts.change
   end
 elsif opts.add
   # add mode
-  date = opts.by ? Chronic.parse(opts.by).to_date : nil
+  date = opts.by ? Chronic.parse(opts.by) : nil
   tasklist = [[opts.add, date]]
   File.open(todo_storage, 'r') do |file|
     content = file.read
@@ -94,7 +96,7 @@ elsif opts.add
     if e[1]
       e[1] # this would be a date, like '2016-02-01'
     else
-      DateTime.parse('2099-02-03T04:05:06+07:00') # this would probably be after that
+      Time.parse('2099-02-03T04:05:06+07:00') # this would probably be after that
     end
   end
   n = 0
@@ -106,7 +108,7 @@ elsif opts.add
   File.write(todo_storage, data)
 elsif opts.change
   # modification mode
-  new_date = opts.by ? Chronic.parse(opts.by).to_date : nil
+  new_date = opts.by ? Chronic.parse(opts.by) : nil
   tasklist = []
   File.open(todo_storage, 'r') do |file|
     content = file.read
