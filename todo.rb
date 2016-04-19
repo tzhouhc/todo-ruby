@@ -10,38 +10,40 @@ opts = Trollop.options do
   opt :by, 'Designate a deadline for this todo.', default: nil, type: :string
   opt :change, 'Modify the deadline for a todo', default: nil, type: :int
   opt :showall, 'Show more than the most urgent several tasks.', default: false
-  opt :timezone, 'Modify the time based on time zones.', default: -5
 end
 
-class Time
-  def to_date
-    Date.parse(to_s) + hour / 24r + min / 1440r + sec / 86400r
-  end
-end
-
-# modify this for a different time zone.
-# e.g. -5 for EST.
-TIMEZONE = opts.timezone
-DAY = 86400
+DAY = 86_400
 HOUR = 3600
 
 todo_storage = ENV['HOME'] + '/.todo'
 File.write(todo_storage, Marshal.dump([])) unless File.file?(todo_storage)
 
-def r_to_date(duration)
-  # convert a rational number to a duration
-  due = duration <= 0 ? 'past due ' : 'due in '
+def diff_to_text(duration)
+  # convert a duration time to due time in words
   days = (duration / DAY).to_i
   hours = ((duration - days * DAY) / HOUR).to_i
-  use_and = days.abs >= 1 && hours.abs >= 1 && duration < 3 * DAY ? ' ' : ''
-  days_str = days.abs >= 1 ? "#{days} days" : ''
-  hours_str = hours.abs >= 1 && duration < 3 * DAY ? "#{hours} hours" : ''
-  due + days_str + use_and + hours_str
+  day_with_s = days > 1 ? 'days' : 'day'
+  hour_with_s = hours > 1 ? 'hours' : 'hour'
+  if days > 0
+    if days >= 3
+      "due in #{days} days"
+    elsif hours > 0
+      "due in #{days} #{day_with_s} #{hours} #{hour_with_s}"
+    else
+      "due in #{days} #{day_with_s}"
+    end
+  else
+    if hours > 0
+      "due in #{hours} #{hour_with_s}"
+    else
+      duration > 0 ? "due in less than an hour" : "past due"
+    end
+  end
 end
 
 def date_colorize(date)
   date_diff = date - Time.now
-  date_str = r_to_date(date_diff)
+  date_str = diff_to_text(date_diff)
   if date_diff < 3 * DAY
     date_str.red
   elsif date_diff > 7 * DAY
