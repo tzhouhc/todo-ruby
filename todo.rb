@@ -22,8 +22,10 @@ def diff_to_text(duration)
   # convert a duration time to due time in words
   days = (duration / DAY).to_i
   hours = ((duration - days * DAY) / HOUR).to_i
+  minutes = ((duration % HOUR) / 60).to_i
   day_with_s = days > 1 ? 'days' : 'day'
   hour_with_s = hours > 1 ? 'hours' : 'hour'
+  minute_with_s = minutes > 1 ? 'minutes' : 'minute'
   if days > 0
     if days >= 3
       "due in #{days} days"
@@ -34,9 +36,9 @@ def diff_to_text(duration)
     end
   else
     if hours > 0
-      "due in #{hours} #{hour_with_s}"
+      "due in #{hours} #{hour_with_s} #{minutes} #{minute_with_s}"
     else
-      duration > 0 ? "due in less than an hour" : "past due"
+      duration > 0 ? "due in #{minutes} #{minute_with_s}" : "past due"
     end
   end
 end
