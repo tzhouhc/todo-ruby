@@ -77,11 +77,23 @@ def print_task(n, line)
   puts result if result
 end
 
+def sort_tasklist(tasklist)
+  tasklist.sort_by! do |e| # sort: by date, and put nil last
+    if e[1]
+      e[1] # this would be a date, like '2016-02-01'
+    else
+      Time.parse('2099-02-03T04:05:06+07:00') # this would probably be after that
+    end
+  end
+end
+
+
 if !opts.add && !opts.done && !opts.change
   # display mode
   File.open(todo_storage, 'r') do |file|
     content = file.read
     tasklist = Marshal.load(content)
+    tasklist = sort_tasklist(tasklist)
     n = 0
     tasklist.each do |line|
       opts.showall ? full_print_task(n, line) : print_task(n, line) # print one line at a time
@@ -96,13 +108,7 @@ elsif opts.add
     content = file.read
     tasklist += Marshal.load(content) # read in the rest
   end
-  tasklist.sort_by! do |e| # sort: by date, and put nil last
-    if e[1]
-      e[1] # this would be a date, like '2016-02-01'
-    else
-      Time.parse('2099-02-03T04:05:06+07:00') # this would probably be after that
-    end
-  end
+  tasklist = sort_tasklist(tasklist)
   n = 0
   tasklist.each do |line|
     opts.showall ? full_print_task(n, line) : print_task(n, line) # also print out post-change
@@ -123,6 +129,7 @@ elsif opts.change
       opts.showall ? full_print_task(n, line) : print_task(n, line)
       n += 1
     end
+    tasklist = sort_tasklist(tasklist)
     data = Marshal.dump(tasklist) # then store the data
     File.write(todo_storage, data)
   end
