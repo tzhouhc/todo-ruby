@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 require 'trollop'
-require 'colorize'
+require 'draw_arrow'
 require 'chronic'
 
 opts = Trollop.options do
@@ -55,11 +55,6 @@ def date_colorize(date)
   else
     date_str.yellow
   end
-end
-
-def color_arrow(text, text_color, arrow_color, next_color)
-  " #{text} ".colorize(color: text_color, background: arrow_color) \
-  + "".colorize(color: arrow_color, background: next_color)
 end
 
 def full_print_task(n, line, powerline)
