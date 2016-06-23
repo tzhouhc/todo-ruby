@@ -10,6 +10,8 @@ opts = Trollop.options do
   opt :by, 'Designate a deadline for this todo.', default: nil, type: :string
   opt :change, 'Modify the deadline for a todo', default: nil, type: :int
   opt :showall, 'Show more than the most urgent several tasks.', default: false
+  opt :urgent, 'Count the number of urgent tasks', default: false
+  opt :powerline, 'Display using Fancy powerline shit', default: false
 end
 
 DAY = 86_400
@@ -55,26 +57,51 @@ def date_colorize(date)
   end
 end
 
-def full_print_task(n, line)
+def color_arrow(text, text_color, arrow_color, next_color)
+  " #{text} ".colorize(color: text_color, background: arrow_color) \
+  + "".colorize(color: arrow_color, background: next_color)
+end
+
+def full_print_task(n, line, powerline)
   # print all tasks
-  task, date = line
-  if date
-    puts " #{n.to_s.yellow}\t| #{task.blue}: #{date_colorize(date)}"
+  puts "powerline = #{powerline}!"
+  if powerline
+    task, date = line
+    if date
+      puts color_arrow(n, :red, :black, :light_green) + color_arrow(task, :black, :light_green, :nil) + ' ' + date_colorize(date)
+    else
+      puts color_arrow(n, :red, :black, :light_green) + color_arrow(task, :black, :light_green, :nil)
+    end
   else
-    puts " #{n.to_s.yellow}\t| #{task.blue}"
+    task, date = line
+    if date
+      puts " #{n.to_s.yellow}\t| #{task.blue}: #{date_colorize(date)}"
+    else
+      puts " #{n.to_s.yellow}\t| #{task.blue}"
+    end
   end
 end
 
-def print_task(n, line)
+def print_task(n, line, powerline)
   # print the task by given info, and only up to things due soon
   task, date = line
-  result = case
-           when date && (date - Time.now < 5 * DAY || n < 5)
-             " #{n.to_s.yellow}\t| #{task.blue}: #{date_colorize(date)}"
-           when n < 5
-             " #{n.to_s.yellow}\t| #{task.blue}"
-           end
-  puts result if result
+  if powerline
+    result = case
+             when date && (date - Time.now < 5 * DAY || n < 5)
+               puts color_arrow(n, :red, :black, :light_green) + color_arrow(task, :black, :light_green, :nil) + ' ' + date_colorize(date)
+             when n < 5
+               puts color_arrow(n, :red, :black, :light_green) + color_arrow(task, :black, :light_green, :nil)
+             end
+    puts result if result
+  else
+    result = case
+             when date && (date - Time.now < 5 * DAY || n < 5)
+               " #{n.to_s.yellow}\t| #{task.blue}: #{date_colorize(date)}"
+             when n < 5
+               " #{n.to_s.yellow}\t| #{task.blue}"
+             end
+    puts result if result
+  end
 end
 
 def sort_tasklist(tasklist)
@@ -87,8 +114,17 @@ def sort_tasklist(tasklist)
   end
 end
 
+def count_urgent(tasklist)
+  sort_tasklist(tasklist)
+  count = 0
+  tasklist.each do |line|
+    next unless line[1]
+    count += 1 if (line[1] - Time.now) < 3 * DAY
+  end
+  count
+end
 
-if !opts.add && !opts.done && !opts.change
+if !opts.add && !opts.done && !opts.change && !opts.urgent
   # display mode
   File.open(todo_storage, 'r') do |file|
     content = file.read
@@ -96,7 +132,7 @@ if !opts.add && !opts.done && !opts.change
     tasklist = sort_tasklist(tasklist)
     n = 0
     tasklist.each do |line|
-      opts.showall ? full_print_task(n, line) : print_task(n, line) # print one line at a time
+      opts.showall ? full_print_task(n, line, opts.powerline) : print_task(n, line, opts.powerline) # print one line at a time
       n += 1
     end
   end
@@ -111,7 +147,7 @@ elsif opts.add
   tasklist = sort_tasklist(tasklist)
   n = 0
   tasklist.each do |line|
-    opts.showall ? full_print_task(n, line) : print_task(n, line) # also print out post-change
+    opts.showall ? full_print_task(n, line, opts.powerline) : print_task(n, line, opts.powerline) # also print out post-change
     n += 1
   end
   data = Marshal.dump(tasklist) # then store the data
@@ -126,14 +162,14 @@ elsif opts.change
     tasklist[opts.change][1] = new_date # change the due-date of one particular task
     n = 0
     tasklist.each do |line| # also print out post-change
-      opts.showall ? full_print_task(n, line) : print_task(n, line)
+      opts.showall ? full_print_task(n, line, opts.powerline) : print_task(n, line, opts.powerline)
       n += 1
     end
     tasklist = sort_tasklist(tasklist)
     data = Marshal.dump(tasklist) # then store the data
     File.write(todo_storage, data)
   end
-else
+elsif opts.done
   # mark done mode
   tasklist = []
   File.open(todo_storage, 'r') do |file|
@@ -142,10 +178,17 @@ else
     tasklist.delete_if.with_index { |_, index| opts.done.include?(index) } # remove each after retrieve
     n = 0
     tasklist.each do |line| # also print out post-change
-      opts.showall ? full_print_task(n, line) : print_task(n, line)
+      opts.showall ? full_print_task(n, line, opts.powerline) : print_task(n, line, opts.powerline)
       n += 1
     end
     data = Marshal.dump(tasklist) # then store the data
     File.write(todo_storage, data)
+  end
+elsif opts.urgent
+  tasklist = []
+  File.open(todo_storage, 'r') do |file|
+    content = file.read
+    tasklist = Marshal.load(content)
+    puts count_urgent(tasklist)
   end
 end
