@@ -130,6 +130,21 @@ end
 
 # options: this shit is optional
 opts = Trollop.options do
+  version "todo-ruby 0.1 - Ting Zhou"
+  banner <<-EOS
+Todo-ruby is a small ruby script that keeps track of things to be done and their deadlines.
+
+Usage:
+       todo [command] <arg> [options]
+where <command> can be:
+  add: add a task.
+  complete: mark a task as complete.
+  change: modify a task.
+  urgent: show the count of urgent tasks.
+  <nil>: displays current tasks.
+where [options] are:
+EOS
+
   opt :by, 'Designate a deadline for this todo.', default: nil, type: :string
   opt :showall, 'Show more than the most urgent several tasks.', default: false
   opt :powerline, 'Use fancy powerilne display', default: false
