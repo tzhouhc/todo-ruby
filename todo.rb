@@ -7,12 +7,12 @@ require 'chronic'
 DAY = 86_400
 HOUR = 3600
 
-URGENT_DAYS = 2
-NORMAL_DAYS = 5
-URGENT_THRESHOLD = DAY * URGENT_DAYS
-NORMAL_THRESHOLD = DAY * NORMAL_DAYS
+URGENT_DAYS = 2 # number of days due in before considered as urgent
+NORMAL_DAYS = 5 # likewise, but for tasks to be considered 'no rush'
+URGENT_THRESHOLD = DAY * URGENT_DAYS # same thing, in seconds
+NORMAL_THRESHOLD = DAY * NORMAL_DAYS # likewise
 
-TASKLIST_LENGTH = 4
+TASKLIST_LENGTH = 4 # how many tasks to display by default
 
 TODO_STORAGE = ENV['HOME'] + '/.todo'
 File.write(TODO_STORAGE, Marshal.dump([])) unless File.file?(TODO_STORAGE)
@@ -55,9 +55,7 @@ def limit_to_show(tasklist, showall)
       _task, date = line
       date && date - Time.now < NORMAL_THRESHOLD
     end
-    if shortlist.size < TASKLIST_LENGTH
-      shortlist = tasklist[0..TASKLIST_LENGTH]
-    end
+    shortlist.size < TASKLIST_LENGTH ? shortlist = tasklist[0..TASKLIST_LENGTH] : shortlist
     shortlist
   end
 end
@@ -130,7 +128,7 @@ end
 
 # options: this shit is optional
 opts = Trollop.options do
-  version "todo-ruby 0.1 - Ting Zhou"
+  version 'todo-ruby 1.0 - Ting Zhou'
   banner <<-EOS
 Todo-ruby is a small ruby script that keeps track of things to be done and their deadlines.
 
@@ -156,6 +154,7 @@ cmd = ARGV.shift
 tasklist = read_to_tasklist
 due_date = Chronic.parse(opts.by) if opts.by
 
+# === BEGINS MAIN LOGIC === #
 case cmd
 when /^((add)|a)$/
   task = ARGV.shift
