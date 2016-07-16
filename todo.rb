@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 require 'trollop'
-require 'draw_arrow'
+require_relative './draw_arrow.rb'
 require 'chronic'
 
 DAY = 86_400
@@ -29,7 +29,7 @@ def sort_tasklist(tasklist)
   end
 end
 
-def read_to_tasklist()
+def read_to_tasklist
   # obtain the tasklist from a file and sort it
   tasklist = []
   File.open(TODO_STORAGE, 'r') do |file|
@@ -104,12 +104,10 @@ def print_task(index, line, powerline)
     else
       puts " #{index.to_s.yellow}\t| #{task.blue}: #{due_time.to_s.colorize(color)}"
     end
+  elsif powerline
+    puts long_arrow_alt([[index, :red, :black], [task, :black, :blue]])
   else
-    if powerline
-      puts long_arrow_alt([[index, :red, :black], [task, :black, :blue]])
-    else
-      puts " #{index.to_s.yellow}\t| #{task.blue}"
-    end
+    puts " #{index.to_s.yellow}\t| #{task.blue}"
   end
 end
 
@@ -123,7 +121,7 @@ def display_tasklist(tasklist, showall, powerline)
 end
 
 def count_urgent(tasklist)
-  tasklist.count { |line| line[1] && line[1] - Time.now <= URGENT_THRESHOLD}
+  tasklist.count { |line| line[1] && line[1] - Time.now <= URGENT_THRESHOLD }
 end
 
 # options: this shit is optional
