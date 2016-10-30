@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+# frozen_string_literal: true
 
 require 'colorize'
 
@@ -23,5 +24,3 @@ def long_arrow_alt(tuples)
   end
   result
 end
-
-# puts long_arrow(%w(hi what ✓), [:black, :white, :yellow], [:white, :green, :blue])

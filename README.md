@@ -10,7 +10,7 @@ Requires `trollop`, `colorize`, `chronic` and Ruby1.9.
 
 3. Modify the default for TIMEZONE inside `todo.rb`.
 
-4. To add a task, use `todo -a 'some task'`. 
+4. To add a task, use `todo -a 'some task'`.
 
 5. To add a task with a due date, use `todo -a 'some task' -b 'some due time'`. The due time is rather flexible, you can use:
   - a date, like 09/14.
